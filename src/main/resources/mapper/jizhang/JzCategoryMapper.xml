@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.youlai.boot.jizhang.mapper.JzCategoryMapper">
+
+    <select id="getCategoryPage" resultType="com.youlai.boot.jizhang.model.vo.CategoryPageVO">
+        SELECT
+            t1.id,
+            t1.parent_id,
+            t1.name,
+            t1.type,
+            t1.icon,
+            t1.sort_order
+        FROM jz_categories t1
+        WHERE t1.is_deleted = 0
+        <if test="queryParams.userId != null">
+            AND (t1.user_id = #{queryParams.userId} OR t1.user_id = 0)
+        </if>
+        <if test="queryParams.name != null and queryParams.name != ''">
+            AND t1.name LIKE CONCAT('%', #{queryParams.name}, '%')
+        </if>
+        <if test="queryParams.type != null and queryParams.type != ''">
+            AND t1.type = #{queryParams.type}
+        </if>
+        <if test="queryParams.parentId != null">
+            AND t1.parent_id = #{queryParams.parentId}
+        </if>
+        ORDER BY t1.sort_order ASC, t1.id ASC
+    </select>
+
+    <select id="getCategoryList" resultType="com.youlai.boot.jizhang.model.vo.CategoryPageVO">
+        SELECT
+            t1.id,
+            t1.parent_id,
+            t1.name,
+            t1.type,
+            t1.icon,
+            t1.sort_order
+        FROM jz_categories t1
+        WHERE t1.is_deleted = 0
+        <if test="queryParams.userId != null">
+            AND (t1.user_id = #{queryParams.userId} OR t1.user_id = 0)
+        </if>
+        <if test="queryParams.name != null and queryParams.name != ''">
+            AND t1.name LIKE CONCAT('%', #{queryParams.name}, '%')
+        </if>
+        <if test="queryParams.type != null and queryParams.type != ''">
+            AND t1.type = #{queryParams.type}
+        </if>
+        <if test="queryParams.parentId != null">
+            AND t1.parent_id = #{queryParams.parentId}
+        </if>
+        ORDER BY t1.sort_order ASC, t1.id ASC
+    </select>
+
+</mapper>

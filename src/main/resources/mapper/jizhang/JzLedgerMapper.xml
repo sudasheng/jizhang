@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.youlai.boot.jizhang.mapper.JzLedgerMapper">
+
+    <select id="getLedgerPage" resultType="com.youlai.boot.jizhang.model.vo.LedgerPageVO">
+        SELECT
+            t1.id,
+            t1.name,
+            t1.is_default,
+            t1.create_time
+        FROM jz_ledgers t1
+        WHERE t1.is_deleted = 0
+        <if test="queryParams.userId != null">
+            AND t1.user_id = #{queryParams.userId}
+        </if>
+        <if test="queryParams.name != null and queryParams.name != ''">
+            AND t1.name LIKE CONCAT('%', #{queryParams.name}, '%')
+        </if>
+        ORDER BY t1.is_default DESC, t1.create_time DESC
+    </select>
+
+</mapper>

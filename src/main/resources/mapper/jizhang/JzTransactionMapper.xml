@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.youlai.boot.jizhang.mapper.JzTransactionMapper">
+
+    <select id="getTransactionPage" resultType="com.youlai.boot.jizhang.model.vo.TransactionPageVO">
+        SELECT
+            t1.id,
+            t1.ledger_id,
+            t1.account_id,
+            t3.name AS account_name,
+            t1.category_id,
+            t4.name AS category_name,
+            t1.amount,
+            t1.type,
+            t1.transaction_date,
+            t1.note,
+            t1.is_excluded,
+            t1.create_time
+        FROM jz_transactions t1
+            LEFT JOIN jz_accounts t3 ON t3.id = t1.account_id AND t3.is_deleted = 0
+            LEFT JOIN jz_categories t4 ON t4.id = t1.category_id AND t4.is_deleted = 0
+        WHERE t1.is_deleted = 0
+        <if test="queryParams.userId != null">
+            AND t1.user_id = #{queryParams.userId}
+        </if>
+        <if test="queryParams.ledgerId != null">
+            AND t1.ledger_id = #{queryParams.ledgerId}
+        </if>
+        <if test="queryParams.accountId != null">
+            AND t1.account_id = #{queryParams.accountId}
+        </if>
+        <if test="queryParams.categoryId != null">
+            AND t1.category_id = #{queryParams.categoryId}
+        </if>
+        <if test="queryParams.type != null and queryParams.type != ''">
+            AND t1.type = #{queryParams.type}
+        </if>
+        <if test="queryParams.transactionDate != null and queryParams.transactionDate.size > 0">
+            AND t1.transaction_date BETWEEN
+            <foreach item="date" collection="queryParams.transactionDate" open="'" separator="' AND '" close="'">
+                ${date}
+            </foreach>
+        </if>
+        <if test="queryParams.note != null and queryParams.note != ''">
+            AND t1.note LIKE CONCAT('%', #{queryParams.note}, '%')
+        </if>
+        ORDER BY t1.transaction_date DESC, t1.create_time DESC
+    </select>
+
+</mapper>

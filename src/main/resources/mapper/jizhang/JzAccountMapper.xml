@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.youlai.boot.jizhang.mapper.JzAccountMapper">
+
+    <select id="getAccountPage" resultType="com.youlai.boot.jizhang.model.vo.AccountPageVO">
+        SELECT
+            t1.id,
+            t1.name,
+            t1.type,
+            t1.balance,
+            t1.is_include_total_assets,
+            t1.remark,
+            t1.create_time
+        FROM jz_accounts t1
+        WHERE t1.is_deleted = 0
+        <if test="queryParams.userId != null">
+            AND t1.user_id = #{queryParams.userId}
+        </if>
+        <if test="queryParams.name != null and queryParams.name != ''">
+            AND t1.name LIKE CONCAT('%', #{queryParams.name}, '%')
+        </if>
+        <if test="queryParams.type != null and queryParams.type != ''">
+            AND t1.type = #{queryParams.type}
+        </if>
+        ORDER BY t1.create_time DESC
+    </select>
+
+</mapper>
