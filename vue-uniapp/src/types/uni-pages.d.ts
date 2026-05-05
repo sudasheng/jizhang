@@ -5,8 +5,10 @@
 
 interface NavigateToOptions {
   url: "/pages/index/index" |
+       "/pages/add-transaction/index" |
        "/pages/ai/index" |
        "/pages/asset/index" |
+       "/pages/category/index" |
        "/pages/chart/index" |
        "/pages/login/index" |
        "/pages/mine/index" |

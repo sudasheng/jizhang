@@ -35,7 +35,7 @@ const DEFAULT_TABBAR_ITEMS: Omit<TabbarItem, "active">[] = [
   { name: "index", value: null, title: "明细", icon: "edit-1" },
   { name: "chart", value: null, title: "图表", icon: "chart-bar" },
   { name: "ai", value: null, title: "AI记账", icon: "add" },
-  { name: "asset", value: null, title: "资产", icon: "coupon" },
+  { name: "asset", value: null, title: "资产", icon: "money-circle" },
   { name: "mine", value: null, title: "我的", icon: "user" },
 ];
 

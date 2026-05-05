@@ -171,9 +171,11 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useRouter } from 'uni-mini-router'
 import { useToast } from 'wot-design-uni'
 import dayjs from 'dayjs'
 
+const router = useRouter()
 const toast = useToast()
 
 // 数据状态
@@ -271,7 +273,7 @@ const handleTransactionClick = (item: any) => {
 }
 
 const handleManualAdd = () => {
-  toast.show('打开记账面板')
+  router.push({ path: '/pages/category/index' })
 }
 </script>
 
