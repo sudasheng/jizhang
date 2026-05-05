@@ -3,7 +3,34 @@
     {
       "path": "pages/index/index",
       "type": "home",
-      "name": "home",
+      "name": "index",
+      "style": {
+        "navigationStyle": "custom"
+      },
+      "layout": "tabbar"
+    },
+    {
+      "path": "pages/ai/index",
+      "type": "page",
+      "name": "ai",
+      "style": {
+        "navigationStyle": "custom"
+      },
+      "layout": "tabbar"
+    },
+    {
+      "path": "pages/asset/index",
+      "type": "page",
+      "name": "asset",
+      "style": {
+        "navigationStyle": "custom"
+      },
+      "layout": "tabbar"
+    },
+    {
+      "path": "pages/chart/index",
+      "type": "page",
+      "name": "chart",
       "style": {
         "navigationStyle": "custom"
       },

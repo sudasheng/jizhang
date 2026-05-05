@@ -5,6 +5,9 @@
 
 interface NavigateToOptions {
   url: "/pages/index/index" |
+       "/pages/ai/index" |
+       "/pages/asset/index" |
+       "/pages/chart/index" |
        "/pages/login/index" |
        "/pages/mine/index" |
        "/pages/webview/index" |

@@ -1,6 +1,6 @@
 <template>
   <view class="page page--tabbar">
-    <text>我的页面</text>
+    <text>资产页面</text>
   </view>
 </template>
 
@@ -8,7 +8,7 @@
 
 <route lang="json">
 {
-  "name": "mine",
+  "name": "asset",
   "style": { "navigationStyle": "custom" },
   "layout": "tabbar"
 }

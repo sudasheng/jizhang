@@ -30,6 +30,7 @@ declare module 'vue' {
     WdCollapseItem: typeof import('wot-design-uni/components/wd-collapse-item/wd-collapse-item.vue')['default']
     WdColPicker: typeof import('wot-design-uni/components/wd-col-picker/wd-col-picker.vue')['default']
     WdConfigProvider: typeof import('wot-design-uni/components/wd-config-provider/wd-config-provider.vue')['default']
+    WdDatetimePicker: typeof import('wot-design-uni/components/wd-datetime-picker/wd-datetime-picker.vue')['default']
     WdDivider: typeof import('wot-design-uni/components/wd-divider/wd-divider.vue')['default']
     WdDropMenu: typeof import('wot-design-uni/components/wd-drop-menu/wd-drop-menu.vue')['default']
     WdDropMenuItem: typeof import('wot-design-uni/components/wd-drop-menu-item/wd-drop-menu-item.vue')['default']

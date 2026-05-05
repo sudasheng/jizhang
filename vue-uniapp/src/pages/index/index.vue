@@ -1,463 +1,323 @@
 <template>
-  <view class="page page--tabbar">
-    <!-- 轮播图 -->
-    <view class="relative">
-      <wd-swiper v-model:current="current" custom-class="swiper-box" :list="swiperList" autoplay />
-      <view class="hero-fade"></view>
-    </view>
-
-    <!-- 快捷导航 -->
-    <view class="section--overlay">
-      <wd-grid clickable :column="4">
-        <wd-grid-item
-          v-for="(item, index) in quickNavList"
-          :key="index"
-          use-slot
-          @itemclick="handleNavClickWithGuard(item)"
-        >
-          <view class="nav-item">
-            <image class="nav-item__icon" :src="item.icon" mode="aspectFit" />
-            <text class="nav-item__label">{{ item.title }}</text>
-          </view>
-        </wd-grid-item>
-      </wd-grid>
-    </view>
-
-    <!-- 通知公告 -->
-    <view class="m-24rpx">
-      <view class="notice-bar" @click="handleNoticeClick">
-        <view class="notice-bar__icon">
-          <wd-icon name="check-outline" size="32rpx" color="var(--color-success)" />
+  <view class="page page--tabbar bg-white min-h-screen">
+    <!-- 自定义导航栏 -->
+    <custom-navbar :show-back="false" bg-color="#FFFFFF" placeholder>
+      <template #left>
+        <view class="ml-4 active:opacity-60 transition-opacity" @click="handleCalendarClick">
+          <wd-icon name="calendar" size="24px" color="#333" />
         </view>
-        <view class="notice-bar__content">
-          <text class="notice-bar__text">{{ noticeText || "暂无通知公告" }}</text>
+      </template>
+      <template #center>
+        <view class="flex items-center active:opacity-60 transition-opacity" @click="handleLedgerClick">
+          <text class="text-lg font-bold text-[#333]">{{ currentLedgerLabel }}</text>
+          <wd-icon name="caret-down-small" size="18px" color="#333" class="ml-1" />
+        </view>
+      </template>
+      <template #right>
+        <view class="mr-4 active:opacity-60 transition-opacity" @click="handleSearchClick">
+          <wd-icon name="search" size="24px" color="#333" />
+        </view>
+      </template>
+    </custom-navbar>
+
+    <view class="px-4 pt-2">
+      <!-- 月度收支卡片 -->
+      <view class="summary-card rounded-[40rpx] p-6 mb-5 relative overflow-hidden">
+        <view class="flex justify-center items-center mb-6 text-[#333]">
+          <view class="p-2 active:opacity-50" @click="handlePrevMonth">
+            <wd-icon name="arrow-left" size="14px" />
+          </view>
+          <view class="mx-6 flex items-center active:opacity-60" @click="handleMonthPickerOpen">
+            <text class="text-base font-bold">{{ formattedMonth }}</text>
+          </view>
+          <view class="p-2 active:opacity-50" @click="handleNextMonth">
+            <wd-icon name="arrow-right" size="14px" />
+          </view>
+        </view>
+        
+        <view class="flex justify-between items-start relative z-10">
+          <view class="flex-1">
+            <view class="mb-5 flex justify-between items-end">
+              <view>
+                <text class="text-xs text-gray-500 block mb-1">本月支出</text>
+                <text class="text-4xl font-bold text-[#333] leading-none">540.40</text>
+              </view>
+              <view class="text-right mr-4 mb-1">
+                 <view class="mb-2">
+                  <text class="text-xs text-gray-400 mr-2">本月收入</text>
+                  <text class="text-lg font-bold text-[#333]">850.00</text>
+                </view>
+                <view>
+                  <text class="text-xs text-gray-400 mr-2">本月结余</text>
+                  <text class="text-lg font-bold text-[#333]">309.60</text>
+                </view>
+              </view>
+            </view>
+          </view>
+        </view>
+        
+        <!-- 背景装饰 -->
+        <view class="absolute right-0 bottom-0 w-36 h-36 opacity-80 pointer-events-none">
+           <image src="https://img.js.design/assets/img/646db4a5b4b1a41f6e6e2f14.png" mode="aspectFit" class="w-full h-full translate-x-4 translate-y-4" />
+        </view>
+      </view>
+
+      <!-- 预算卡片 -->
+      <view class="budget-card rounded-3xl p-5 mb-6 shadow-sm active:scale-[0.98] transition-transform" @click="handleBudgetClick">
+        <view class="flex justify-between items-center mb-4">
+          <text class="text-sm font-bold text-[#333]">本月预算</text>
+          <view class="bg-[#FFF2CC] text-[#D4A017] text-xs px-2.5 py-0.5 rounded-full font-bold">0%</view>
+        </view>
+        
+        <!-- 进度条 -->
+        <view class="h-2 bg-gray-100 rounded-full mb-4 relative">
+          <view class="absolute left-0 top-0 h-full bg-[#FFBABA] w-[5%] rounded-full" />
+          <view class="absolute left-[5%] top-[-14rpx] transition-all duration-300 transform translate-x-[-50%]">
+            <view class="w-8 h-8 flex items-center justify-center">
+               <text class="text-lg">🍑</text>
+            </view>
+          </view>
+        </view>
+
+        <view class="flex justify-between text-xs text-gray-400">
+          <text>剩余预算 未设置</text>
+          <text>日均可用 0.00</text>
+        </view>
+      </view>
+
+      <!-- 收支记录标题 -->
+      <view class="mb-4 mt-8 px-1">
+        <text class="text-lg font-bold text-[#333]">{{ formattedMonth }}收支记录</text>
+      </view>
+
+      <!-- 按日期分组 -->
+      <view class="transaction-group mb-8">
+        <view class="date-header flex justify-between items-center py-2 px-4 mb-2">
+          <view class="flex items-center">
+            <text class="mr-2 text-[#333] font-bold text-sm">昨天</text>
+            <text class="text-gray-400 text-xs font-medium">周一</text>
+          </view>
+          <view class="text-gray-400 text-[10px]">
+            <text>支出 -540.40 | 收入 +850.00</text>
+          </view>
+        </view>
+
+        <!-- 记录项 -->
+        <view v-for="(item, index) in transactions" :key="index" class="flex items-center py-4 px-2 hover:bg-gray-50 active:bg-gray-100 transition-colors duration-200" @click="handleTransactionClick(item)">
+          <view class="w-12 h-12 rounded-full bg-[#E3F2FD] flex items-center justify-center mr-4">
+            <wd-icon :name="item.icon" size="26px" color="#1E88E5" />
+          </view>
+          <view class="flex-1 flex justify-between items-center border-b border-gray-50 pb-4" :class="{'border-none': index === transactions.length - 1}">
+            <view>
+              <text class="text-base font-bold text-[#333] block mb-0.5">{{ item.category }}</text>
+              <text class="text-xs text-gray-400">{{ item.note }}</text>
+            </view>
+            <view class="text-right">
+              <text class="text-lg font-bold text-[#333]">
+                {{ item.amount > 0 ? '+' : '' }}{{ item.amount.toFixed(2) }}元
+              </text>
+            </view>
+          </view>
         </view>
       </view>
     </view>
 
-    <!-- 数据统计 -->
-    <view class="m-24rpx">
-      <view class="grid grid-cols-2 gap-16rpx">
-        <view class="stat-card stat-card--uv">
-          <image class="stat-card__icon" src="/static/icons/uv.svg" mode="aspectFit" />
-          <view class="stat-card__header">
-            <text class="stat-card__label">访客数</text>
-            <view class="stat-card__dot stat-card__dot--uv"></view>
-          </view>
-          <text class="stat-card__num stat-card__num--uv">
-            {{ visitOverviewData.todayUvCount }}
-          </text>
-        </view>
-        <view class="stat-card stat-card--pv">
-          <image class="stat-card__icon" src="/static/icons/pv.svg" mode="aspectFit" />
-          <view class="stat-card__header">
-            <text class="stat-card__label">浏览量</text>
-            <view class="stat-card__dot stat-card__dot--pv"></view>
-          </view>
-          <text class="stat-card__num stat-card__num--pv">
-            {{ visitOverviewData.todayPvCount }}
-          </text>
-        </view>
+    <!-- 悬浮按钮 -->
+    <view class="fixed right-6 bottom-[300rpx] flex flex-col items-center z-50 animate-bounce-subtle">
+      <view class="manual-btn shadow-lg flex flex-col items-center justify-center border-[6rpx] border-white active:scale-90 transition-transform duration-200" @click="handleManualAdd">
+        <wd-icon name="edit-1" size="24px" color="#333" />
+        <text class="text-[10px] font-bold mt-[-2px]">手动记</text>
       </view>
     </view>
+    
+    <!-- 功能组件 -->
+    
+    <!-- 月份选择器 -->
+    <wd-datetime-picker
+      v-model="currentDate"
+      type="year-month"
+      title="选择月份"
+      @confirm="handleMonthConfirm"
+      ref="monthPicker"
+    />
 
-    <!-- 访问趋势图表 -->
-    <view class="mt-24rpx">
-      <wd-card custom-class="chart-card">
-        <template #title>
-          <view class="flex-between">
-            <text class="text-28rpx font-semibold">访问趋势</text>
-            <wd-radio-group
-              v-model="recentDaysRange"
-              shape="button"
-              inline
-              @change="handleDataRangeChange"
-            >
-              <wd-radio :value="7">近7天</wd-radio>
-              <wd-radio :value="15">近15天</wd-radio>
-            </wd-radio-group>
-          </view>
-        </template>
+    <!-- 日历选择器 (用于左上角日历按钮) -->
+    <wd-calendar
+      v-model="calendarValue"
+      @confirm="handleCalendarConfirm"
+      ref="calendar"
+    />
 
-        <view class="w-full h-600rpx">
-          <qiun-data-charts type="area" :chartData="chartData" :opts="chartOpts" />
-        </view>
-      </wd-card>
-    </view>
+    <!-- 账本选择器 -->
+    <wd-select-picker
+      v-model="ledgerValue"
+      :columns="ledgers"
+      title="切换账本"
+      @confirm="handleLedgerConfirm"
+      ref="ledgerPicker"
+    />
+
+    <!-- 搜索框弹出层 -->
+    <wd-popup v-model="showSearch" position="top" custom-style="height: 120rpx; padding-top: 100rpx;">
+      <view class="px-4 pb-2 bg-white flex items-center">
+        <wd-search v-model="searchKeyword" placeholder="搜索账单" hide-cancel @search="onSearch" class="flex-1" />
+        <text class="ml-3 text-sm text-blue-500" @click="showSearch = false">取消</text>
+      </view>
+    </wd-popup>
+    
+    <wd-toast />
   </view>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
-import { onReady, onShow } from "@dcloudio/uni-app";
-import { dayjs } from "wot-design-uni";
-import { useRouter } from "uni-mini-router";
-import { useUserStore } from "@/store";
-import { useNavigation } from "@/composables/useNavigation";
-import { menuConfig } from "@/config/menu";
-import { isLoggedIn } from "@/utils/auth";
-import { hasPermission } from "@/utils/permission";
-import LogAPI, { type VisitOverview as ApiVisitOverview, type VisitTrend } from "@/api/log";
-import NoticeAPI, { type NoticeItem } from "@/api/notice";
+import { ref, computed } from 'vue'
+import { useToast } from 'wot-design-uni'
+import dayjs from 'dayjs'
 
-type VisitOverviewVO = ApiVisitOverview;
+const toast = useToast()
 
-interface NavItem {
-  icon: string;
-  title: string;
-  url: string;
-  perm: string;
+// 数据状态
+const transactions = ref([
+  { category: '衣服', note: '衣服', amount: -90.00, icon: 'app' },
+  { category: '其他', note: '域名', amount: -80.00, icon: 'help-circle' },
+  { category: '其他', note: '域名', amount: -60.00, icon: 'help-circle' },
+  { category: '其他', note: '域名', amount: -50.00, icon: 'help-circle' },
+])
+
+// 日期管理
+const currentDate = ref(new Date('2026-05-01').getTime())
+const formattedMonth = computed(() => dayjs(currentDate.value).format('YYYY年MM月'))
+
+// 账本管理
+const ledgerValue = ref('1')
+const ledgers = ref([
+  { value: '1', label: '默认账本' },
+  { value: '2', label: '日常开支' },
+  { value: '3', label: '旅行账本' },
+  { value: '4', label: '人情往来' }
+])
+const currentLedgerLabel = computed(() => {
+  const ledger = ledgers.value.find(l => l.value === ledgerValue.value)
+  return ledger ? ledger.label : '默认账本'
+})
+
+// 搜索管理
+const showSearch = ref(false)
+const searchKeyword = ref('')
+
+// 日历管理
+const calendarValue = ref<number | number[]>(new Date('2026-05-05').getTime())
+
+// 引用
+const monthPicker = ref()
+const calendar = ref()
+const ledgerPicker = ref()
+
+// 交互处理
+
+// 1. 日历功能
+const handleCalendarClick = () => {
+  calendar.value.open()
+}
+const handleCalendarConfirm = ({ value }: any) => {
+  const dateStr = dayjs(value).format('YYYY-MM-DD')
+  toast.show(`跳转到日期: ${dateStr}`)
 }
 
-const router = useRouter();
-const userStore = useUserStore();
-const { handleNavClick } = useNavigation();
-// custom-navbar 组件内部已处理导航栏高度与胶囊避让
-
-const current = ref(0);
-const recentDaysRange = ref(7);
-
-const swiperList = ref([
-  "https://www.youlai.tech/storage/youlai/bg02.png",
-  "https://www.youlai.tech/storage/blog/banner9.png",
-]);
-
-const visitOverviewData = ref<VisitOverviewVO>({
-  todayUvCount: 0,
-  uvGrowthRate: 0,
-  totalUvCount: 0,
-  todayPvCount: 0,
-  pvGrowthRate: 0,
-  totalPvCount: 0,
-});
-
-const noticeList = ref<NoticeItem[]>([]);
-const noticeText = computed(() => {
-  const titles = noticeList.value
-    .map((n: NoticeItem) => n.title)
-    .filter(Boolean)
-    .slice(0, 2);
-  return titles.length ? titles.join("    ") : "暂无通知";
-});
-
-// 用户权限列表
-const userPerms = computed(() => userStore.userInfo?.perms || []);
-
-// 是否已登录
-const isLogged = computed(() => isLoggedIn());
-
-const hasAnyPerm = computed(() => userPerms.value.length > 0);
-
-// 默认菜单（未登录时显示）
-const defaultNavList = computed(() => {
-  const result: { icon: string; title: string; url: string; perm: string }[] = [];
-  for (const group of menuConfig) {
-    for (const item of group.children) {
-      result.push(item);
-      if (result.length >= 4) {
-        return result;
-      }
-    }
-  }
-  return result;
-});
-
-// 快捷入口：已登录按权限过滤，未登录显示默认菜单
-const quickNavList = computed(() => {
-  if (!isLogged.value || !hasAnyPerm.value) {
-    return defaultNavList.value;
-  }
-  const result: { icon: string; title: string; url: string; perm: string }[] = [];
-  for (const group of menuConfig) {
-    for (const item of group.children) {
-      if (hasPermission(item.perm)) {
-        result.push(item);
-      }
-      if (result.length >= 4) {
-        return result;
-      }
-    }
-  }
-  return result;
-});
-
-const chartData = ref({});
-const chartOpts = ref({
-  padding: [20, 0, 20, 0],
-  xAxis: {
-    fontSize: 10,
-    rotateLabel: true,
-    rotateAngle: 30,
-  },
-  yAxis: {
-    disabled: true,
-  },
-  extra: {
-    area: {
-      type: "curve",
-      opacity: 0.2,
-      addLine: true,
-      width: 2,
-      gradient: true,
-      activeType: "hollow",
-    },
-  },
-});
-
-async function loadNoticeData() {
-  // 未登录时不调用通知接口
-  if (!isLogged.value) {
-    noticeList.value = [];
-    return;
-  }
-  try {
-    const { list } = await NoticeAPI.getMyNoticePage({ pageNum: 1, pageSize: 2 });
-    noticeList.value = list || [];
-  } catch {
-    noticeList.value = [];
-  }
+// 2. 账本切换
+const handleLedgerClick = () => {
+  ledgerPicker.value.open()
+}
+const handleLedgerConfirm = ({ value, selectedItem }: any) => {
+  ledgerValue.value = value
+  toast.show(`已切换至: ${selectedItem.label}`)
 }
 
-async function loadVisitOverviewData() {
-  try {
-    visitOverviewData.value = await LogAPI.getVisitOverview();
-  } catch {
-    // ignore
-  }
+// 3. 搜索功能
+const handleSearchClick = () => {
+  showSearch.value = true
+}
+const onSearch = () => {
+  toast.show(`搜索: ${searchKeyword.value}`)
+  showSearch.value = false
 }
 
-async function loadVisitTrendData() {
-  const endDate = dayjs().format("YYYY-MM-DD");
-  const startDate = dayjs()
-    .subtract(recentDaysRange.value - 1, "day")
-    .format("YYYY-MM-DD");
-
-  try {
-    const data: VisitTrend = await LogAPI.getVisitTrend({ startDate, endDate });
-    chartData.value = JSON.parse(
-      JSON.stringify({
-        categories: (data.dates || []).map((d) => dayjs(d).format("MM-DD")),
-        series: [
-          { name: "访客数(UV)", data: data.uvList || [] },
-          { name: "浏览量(PV)", data: data.pvList || [] },
-        ],
-      })
-    );
-  } catch {
-    chartData.value = { categories: [], series: [] };
-  }
+// 4. 月份切换与选择
+const handleMonthPickerOpen = () => {
+  monthPicker.value.open()
+}
+const handleMonthConfirm = ({ value }: any) => {
+  currentDate.value = value
+  toast.show(`已加载 ${dayjs(value).format('YYYY年MM月')} 数据`)
 }
 
-function handleNavClickWithGuard(item: NavItem) {
-  if (!isLogged.value || !hasAnyPerm.value) {
-    uni.navigateTo({ url: "/pages/login/index" });
-    return;
-  }
-  handleNavClick(item);
+const handlePrevMonth = () => {
+  currentDate.value = dayjs(currentDate.value).subtract(1, 'month').valueOf()
+  toast.show(`已切换至 ${dayjs(currentDate.value).format('YYYY年MM月')}`)
 }
 
-function handleNoticeClick() {
-  router.push({ path: "/pages/work/notice/index" });
+const handleNextMonth = () => {
+  currentDate.value = dayjs(currentDate.value).add(1, 'month').valueOf()
+  toast.show(`已切换至 ${dayjs(currentDate.value).format('YYYY年MM月')}`)
 }
 
-function handleDataRangeChange({ value }: { value: number }) {
-  recentDaysRange.value = value;
-  loadVisitTrendData();
+// 其他交互
+const handleBudgetClick = () => {
+  toast.show('跳转预算设置页面')
 }
 
-onReady(() => {
-  loadNoticeData();
-  loadVisitOverviewData();
-  loadVisitTrendData();
-});
+const handleTransactionClick = (item: any) => {
+  toast.show(`账单详情: ${item.category} ${item.amount}元`)
+}
 
-// 每次页面显示时刷新数据（登录后跳转回来也能更新）
-onShow(() => {
-  loadVisitOverviewData();
-  loadVisitTrendData();
-});
+const handleManualAdd = () => {
+  toast.show('打开记账面板')
+}
 </script>
 
 <route lang="json">
 {
-  "name": "home",
+  "name": "index",
   "style": { "navigationStyle": "custom" },
   "layout": "tabbar"
 }
 </route>
 
 <style lang="scss" scoped>
-.hero-fade {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  z-index: var(--z-sticky);
-  height: 120rpx;
-  pointer-events: none;
-  background: linear-gradient(
-    to bottom,
-    transparent 0%,
-    var(--color-bg-secondary) 60%,
-    var(--color-bg-secondary) 100%
-  );
+.page {
+  padding-bottom: calc(180rpx + constant(safe-area-inset-bottom));
+  padding-bottom: calc(180rpx + env(safe-area-inset-bottom));
 }
 
-:deep(.swiper-box),
-:deep(.swiper-box .wd-swiper__item),
-:deep(.swiper-box image) {
-  height: 420rpx;
+.summary-card {
+  background: #FFFFFF;
+  border: 4rpx solid #FFDCDC;
+  box-shadow: 0 8rpx 30rpx rgba(255, 220, 220, 0.4);
 }
 
-.section--overlay {
-  position: relative;
-  z-index: var(--z-sticky);
-  padding: 18rpx 8rpx;
-  margin: 24rpx;
-  margin-top: -120rpx;
-  background: var(--color-bg);
-  border-radius: 24rpx;
-  box-shadow: var(--shadow-md);
+.budget-card {
+  background: #FFF9F9;
+  border: 2rpx solid #FFEBEB;
 }
 
-.nav-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 16rpx;
-
-  &__icon {
-    width: 72rpx;
-    height: 72rpx;
-    border-radius: 16rpx;
-  }
-
-  &__label {
-    margin-top: 12rpx;
-    font-size: 24rpx;
-    color: var(--color-text);
-  }
+.date-header {
+  background-color: #F8F8F8;
+  border-radius: 100rpx;
 }
 
-.notice-bar {
-  display: flex;
-  align-items: center;
-  padding: 24rpx 24rpx 24rpx 20rpx;
-  background: var(--color-bg);
-  border: 1rpx solid var(--color-border);
-  border-radius: 16rpx;
-  box-shadow: var(--shadow-sm);
-
-  &__icon {
-    display: flex;
-    flex-shrink: 0;
-    align-items: center;
-    justify-content: center;
-    width: 48rpx;
-    height: 48rpx;
-    margin-right: 16rpx;
-    background: var(--color-success-light);
-    border-radius: 12rpx;
-  }
-
-  &__content {
-    flex: 1;
-    overflow: hidden;
-  }
-
-  &__text {
-    display: -webkit-box;
-    overflow: hidden;
-    font-size: 26rpx;
-    font-weight: 500;
-    color: var(--color-text);
-    -webkit-line-clamp: 1;
-    line-clamp: 1;
-    -webkit-box-orient: vertical;
-  }
+.manual-btn {
+  width: 110rpx;
+  height: 110rpx;
+  background-color: #FDD835;
+  border-radius: 50%;
 }
 
-.stat-card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  padding: 24rpx 20rpx;
-  overflow: hidden;
-  background: var(--color-bg);
-  border: 1rpx solid var(--color-border);
-  border-radius: 16rpx;
-  box-shadow: var(--shadow-sm);
+@keyframes bounce-subtle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10rpx); }
+}
 
-  &__header {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 16rpx;
-  }
-
-  &__label {
-    font-size: 24rpx;
-    font-weight: 500;
-    color: var(--color-text-secondary);
-  }
-
-  &__icon {
-    position: absolute;
-    right: 4px;
-    bottom: 4px;
-    width: 72rpx;
-    height: 72rpx;
-    opacity: 0.25;
-  }
-
-  &__dot {
-    width: 12rpx;
-    height: 12rpx;
-    border-radius: 50%;
-
-    &--uv,
-    &--green {
-      background: var(--color-success);
-      box-shadow: 0 0 10rpx rgba(52, 209, 157, 0.35);
-    }
-
-    &--pv,
-    &--blue {
-      background: var(--color-primary);
-      box-shadow: 0 0 10rpx rgba(77, 128, 240, 0.3);
-    }
-  }
-
-  &__num {
-    position: relative;
-    font-size: 48rpx;
-    font-weight: 700;
-    line-height: 1;
-    letter-spacing: -1rpx;
-
-    &--uv,
-    &--green {
-      color: var(--color-success);
-    }
-
-    &--pv,
-    &--blue {
-      color: var(--color-primary);
-    }
-  }
-
-  &--full {
-    flex-direction: row;
-    grid-column: 1 / -1;
-    align-items: center;
-    justify-content: space-between;
-    padding: 20rpx 20rpx;
-
-    .stat-card__num {
-      font-size: 28rpx;
-      letter-spacing: 0;
-    }
-  }
+.animate-bounce-subtle {
+  animation: bounce-subtle 3s infinite ease-in-out;
 }
 </style>
